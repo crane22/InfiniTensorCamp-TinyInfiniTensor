@@ -1,29 +1,22 @@
 #include "operators/transpose.h"
 
-namespace infini
-{
+namespace infini {
     TransposeObj::TransposeObj(GraphObj *graph, Tensor input, Tensor output,
                                vector<int> permute)
-        : OperatorObj(OpType::Transpose, {input}, {output})
-    {
+        : OperatorObj(OpType::Transpose, {input}, {output}) {
         auto rank = input->getRank();
-        if (permute.empty())
-        {
-            for (size_t i = 0; i < rank; ++i)
-            {
+        if (permute.empty()) {
+            for (size_t i = 0; i < rank; ++i) {
                 transposePermute[i] = i;
             }
-        }
-        else
-        {
+        } else {
             IT_ASSERT(rank == permute.size());
             transposePermute = std::move(permute);
         }
         IT_ASSERT(checkValid(graph));
     }
 
-    optional<vector<Shape>> TransposeObj::inferShape(const TensorVec &inputs)
-    {
+    optional<vector<Shape>> TransposeObj::inferShape(const TensorVec &inputs) {
         const auto A = inputs[0];
         auto input_dim = A->getDims();
         auto output_dim = input_dim;
@@ -33,12 +26,13 @@ namespace infini
         // TODO：修改 output_dim，返回正确的 transpose 后的 shape
         // REF: https://onnx.ai/onnx/operators/onnx__Transpose.html#transpose-21
         // =================================== 作业 ===================================
-
+        for (int i = 0; i < rank; ++i) {
+            output_dim[i] = input_dim[transposePermute[i]];
+        }
         return std::nullopt;
     }
 
-    std::string TransposeObj::toString() const
-    {
+    std::string TransposeObj::toString() const {
         std::ostringstream os;
         os << type.toString() << "[" << getGuid() << "]";
         os << "(";
